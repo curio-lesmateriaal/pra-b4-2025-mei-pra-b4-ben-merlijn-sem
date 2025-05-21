@@ -7,15 +7,20 @@
         mc:Ignorable="d"
         Title="Home" Height="1080" Width="1920" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen" WindowState="Maximized">
     <Grid>
+
         <TabControl>
 
             <TabItem Header="Foto's">
                 <Grid>
-                    <ScrollViewer Margin="10,38,10,43">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="13*"/>
+                        <ColumnDefinition Width="370*"/>
+                    </Grid.ColumnDefinitions>
+                    <ScrollViewer Margin="10,38,10,43" Grid.ColumnSpan="2">
                         <WrapPanel x:Name="spPictures">
                         </WrapPanel>
                     </ScrollViewer>
-                    <Button x:Name="btnRefresh" Content="Refresh" HorizontalAlignment="Left" Margin="10,998,0,0" VerticalAlignment="Top" Width="83" Height="28" Click="btnRefresh_Click"/>
+                    <Button x:Name="btnRefresh" Content="Refresh" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Width="83" Height="28" Click="btnRefresh_Click" Grid.ColumnSpan="2"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Kassa">
@@ -29,12 +34,15 @@
                     <Button x:Name="btnShopAdd" Content="Toevoegen" HorizontalAlignment="Left" Margin="100,383,0,0" VerticalAlignment="Top" Width="147" Click="btnShopAdd_Click"/>
                     <Button x:Name="btnShopReset" Content="Resetten" HorizontalAlignment="Left" Margin="278,383,0,0" VerticalAlignment="Top" Width="147" Click="btnShopReset_Click"/>
                     <Label x:Name="lbPrices" Content="" HorizontalAlignment="Left" Margin="1065,174,0,0" VerticalAlignment="Top" Height="536" Width="695"/>
-                    <Label x:Name="lbReceipt" Content="" HorizontalAlignment="Left" Margin="100,442,0,0" VerticalAlignment="Top" Height="392" Width="325"/>
-                    <Button x:Name="btnSave" Content="Bon Opslaan" HorizontalAlignment="Left" Margin="10,998,0,0" VerticalAlignment="Top" Width="83" Height="28" Click="btnSave_Click"/>
+                    <ScrollViewer HorizontalAlignment="Left" Margin="100,442,0,0" VerticalAlignment="Top" Height="200" Width="325">
+                        <Label x:Name="lbReceipt" Content="" Height="Auto" Width="Auto"/>
+                    </ScrollViewer>
+                    <Button x:Name="btnSave" Content="Bon Opslaan" HorizontalAlignment="Left" VerticalAlignment="Top" Width="83" Height="28" Click="btnSave_Click" Margin="100,408,0,0"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Zoeken">
                 <Grid>
+
                     <Label Content="Zoeken:" HorizontalAlignment="Left" Margin="100,53,0,0" VerticalAlignment="Top" Height="24" Width="255"/>
                     <TextBox x:Name="tbZoeken" HorizontalAlignment="Left" Margin="100,77,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="325" Height="22"/>
                     <Button x:Name="btnZoeken" Content="Zoeken" HorizontalAlignment="Left" Margin="430,77,0,0" VerticalAlignment="Top" Width="83" Height="22" Click="btnZoeken_Click"/>
