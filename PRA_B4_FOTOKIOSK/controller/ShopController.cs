@@ -83,6 +83,7 @@ namespace PRA_B4_FOTOKIOSK.controller
             string filePath = "receipt.txt";
             File.WriteAllText(filePath, receipt);
             MessageBox.Show($"Bon opgeslagen naar {filePath}");
+
         }
     }
 }
