@@ -79,7 +79,10 @@ namespace PRA_B4_FOTOKIOSK.controller
         // Wordt uitgevoerd wanneer er op de Save knop is geklikt
         public void SaveButtonClick()
         {
-
+            string receipt = ShopManager.GetShopReceipt();
+            string filePath = "receipt.txt";
+            File.WriteAllText(filePath, receipt);
+            MessageBox.Show($"Bon opgeslagen naar {filePath}");
         }
     }
 }
