@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace PRA_B4_FOTOKIOSK.controller
 {
@@ -12,7 +14,7 @@ namespace PRA_B4_FOTOKIOSK.controller
         // De window die we laten zien op het scherm
         public static Home Window { get; set; }
 
-        // De lijst met foto's die we tonen
+        // De lijst met fotos die we laten zien
         public List<KioskPhoto> PicturesToDisplay = new List<KioskPhoto>();
 
         public void Start()
@@ -81,7 +83,6 @@ namespace PRA_B4_FOTOKIOSK.controller
             Start();
         }
 
-        // ✅ JOUW versie van GetTodayFolder:
         private string GetTodayFolder()
         {
             string folder = string.Empty;
@@ -114,7 +115,7 @@ namespace PRA_B4_FOTOKIOSK.controller
 
         private DateTime? GetPhotoTime(string file, DateTime now)
         {
-            string naam = Path.GetFileNameWithoutExtension(file); // bv. "10_05_30_id8824"
+            string naam = Path.GetFileNameWithoutExtension(file);
             string[] parts = naam.Split('_');
 
             if (parts.Length >= 4 &&
@@ -130,7 +131,7 @@ namespace PRA_B4_FOTOKIOSK.controller
 
         private int GetPhotoId(string file)
         {
-            string naam = Path.GetFileNameWithoutExtension(file); // bv. "10_05_30_id8824"
+            string naam = Path.GetFileNameWithoutExtension(file);
             string[] parts = naam.Split(new[] { "_id" }, StringSplitOptions.None);
 
             if (parts.Length == 2 && int.TryParse(parts[1], out int id))
