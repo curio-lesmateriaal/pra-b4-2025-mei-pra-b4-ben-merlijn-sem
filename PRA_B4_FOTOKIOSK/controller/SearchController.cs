@@ -13,115 +13,127 @@ namespace PRA_B4_FOTOKIOSK.controller
     public class SearchController
     {
         // De window die we laten zien op het scherm
-        public static Home Window { get; set; }
+        public static Home Window { get; set; } // Houdt een referentie naar het hoofdvenster
 
         // Start methode die wordt aangeroepen wanneer de zoek pagina opent.
         public void Start()
         {
             // Leeg het zoekveld en het info label
-            if (Window != null)
+            if (Window != null) // Controleer of het venster bestaat
             {
-                Window.tbZoeken.Text = "";
-                Window.lbSearchInfo.Content = "";
+                Window.tbZoeken.Text = ""; // Zet het zoekveld leeg
+                Window.lbSearchInfo.Content = ""; // Zet het info label leeg
             }
         }
 
         // Wordt uitgevoerd wanneer er op de Zoeken knop is geklikt
         public void SearchButtonClick()
         {
-            if (Window == null) return;
+            // Controleer of het Window object bestaat
+            if (Window == null) return; // Stop als het venster niet bestaat
 
-            string zoekText = Window.tbZoeken.Text.Trim();
-            Window.lbSearchInfo.Content = ""; // Verwijder eerdere foutmelding direct
+            // Haal de tekst uit het zoekveld en trim spaties
+            string zoekText = Window.tbZoeken.Text.Trim(); // Haal en trim de zoektekst
+            Window.lbSearchInfo.Content = ""; // Maak het info label leeg
+            Window.imgBig.Source = null; // Maak de grote afbeelding leeg
 
-            if (string.IsNullOrEmpty(zoekText))
+            // Controleer of het zoekveld leeg is
+            if (string.IsNullOrEmpty(zoekText)) // Check of er iets is ingevuld
             {
-                Window.lbSearchInfo.Content = "Voer een datum en tijd of foto ID in (bv. 2025-05-28 14:23:00 of 12).";
-                Window.imgBig.Source = null;
-                return;
+                Window.lbSearchInfo.Content = "Voer een datum en tijd of foto ID in (bv. 2025-05-28 14:23:00 of 12)."; // Toon instructie
+                return; // Stop de methode
             }
 
-            var pictures = Window.PictureController.PicturesToDisplay;
+            // Haal de lijst met foto's op die getoond worden
+            var pictures = Window.PictureController.PicturesToDisplay; // Verkrijg de te tonen foto's
 
-            // Probeer eerst als ID te zoeken
-            if (int.TryParse(zoekText, out int zoekId))
+            // Zoek op ID als het zoekveld een getal bevat
+            if (int.TryParse(zoekText, out int zoekId)) // Probeer de zoektekst als getal te interpreteren
             {
-                var gevondenFoto = pictures.FirstOrDefault(f => f.Id == zoekId);
-                if (gevondenFoto != null)
+                // Zoek de foto met het opgegeven ID
+                var foto = pictures.FirstOrDefault(f => f.Id == zoekId); // Zoek foto met dit ID
+                if (foto != null) // Als foto gevonden
                 {
-                    ToonFoto(gevondenFoto, $"Foto gevonden: {gevondenFoto.Id}");
-                    return;
+                    // Toon de gevonden foto
+                    ToonFoto(foto, $"Foto gevonden: {foto.Id}"); // Toon foto en info
                 }
                 else
                 {
-                    Window.imgBig.Source = null;
-                    Window.lbSearchInfo.Content = "Geen foto gevonden met dit ID.";
-                    return;
+                    // Geen foto gevonden met dit ID
+                    Window.lbSearchInfo.Content = "Geen foto gevonden met dit ID."; // Toon foutmelding
                 }
+                return; // Stop de methode
             }
 
-            // Probeer de invoer te parsen als DateTime
-            if (!DateTime.TryParse(zoekText, out DateTime zoekMoment))
+            // Zoek op datum/tijd als het zoekveld een geldige datum/tijd bevat
+            if (DateTime.TryParse(zoekText, out DateTime zoekMoment)) // Probeer de zoektekst als datum/tijd te interpreteren
             {
-                Window.lbSearchInfo.Content = "Ongeldige datum/tijd of ID. Gebruik formaat: yyyy-MM-dd HH:mm:ss of een getal voor ID.";
-                Window.imgBig.Source = null;
-                return;
-            }
+                // Haal de private methode GetPhotoTime op via reflectie
+                var getPhotoTime = Window.PictureController
+                    .GetType()
+                    .GetMethod("GetPhotoTime", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance); // Vind de private methode
 
-            // Gebruik reflection om de private GetPhotoTime-methode te benaderen
-            var getPhotoTimeMethod = Window.PictureController
-                .GetType()
-                .GetMethod("GetPhotoTime", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                // Zoek de foto die het dichtst bij het opgegeven tijdstip ligt
+                var gevonden = pictures
+                    .Select(f => new
+                    {
+                        Photo = f, // De foto zelf
+                        Time = (DateTime?)getPhotoTime.Invoke(Window.PictureController, new object[] { f.Source, zoekMoment }) // Haal de tijd van de foto op
+                    })
+                    .Where(x => x.Time.HasValue) // Alleen foto's met een geldige tijd
+                    .OrderBy(x => Math.Abs((x.Time.Value - zoekMoment).TotalSeconds)) // Sorteer op tijdsverschil
+                    .FirstOrDefault(); // Pak de dichtstbijzijnde
 
-            var gevonden = pictures
-                .Select(f => new
+                if (gevonden?.Photo != null) // Als er een foto gevonden is
                 {
-                    Photo = f,
-                    Time = (DateTime?)getPhotoTimeMethod.Invoke(Window.PictureController, new object[] { f.Source, zoekMoment })
-                })
-                .Where(x => x.Time.HasValue)
-                .OrderBy(x => Math.Abs((x.Time.Value - zoekMoment).TotalSeconds))
-                .FirstOrDefault();
+                    // Toon de gevonden foto met tijd
+                    ToonFoto(gevonden.Photo, $"Foto gevonden: {gevonden.Photo.Id} ({gevonden.Time:HH:mm:ss})"); // Toon foto en tijd
+                }
+                else
+                {
+                    // Geen foto gevonden op deze dag/tijd of ID
+                    Window.lbSearchInfo.Content = "Geen foto gevonden op deze dag/tijd of ID."; // Toon foutmelding
+                }
+                return; // Stop de methode
+            }
 
-            if (gevonden != null && gevonden.Photo != null)
-            {
-                ToonFoto(gevonden.Photo, $"Foto gevonden: {gevonden.Photo.Id} ({gevonden.Time:HH:mm:ss})");
-            }
-            else
-            {
-                Window.imgBig.Source = null;
-                Window.lbSearchInfo.Content = "Geen foto gevonden op deze dag/tijd of ID.";
-            }
+            // Ongeldige invoer
+            Window.lbSearchInfo.Content = "Ongeldige datum/tijd of ID. Gebruik formaat: yyyy-MM-dd HH:mm:ss of een getal voor ID."; // Toon foutmelding
         }
 
+        // Methode om een foto te tonen in het grote afbeeldingsvak
         private void ToonFoto(KioskPhoto foto, string info)
         {
             try
             {
-                string path = foto.Source;
-                if (!Uri.IsWellFormedUriString(path, UriKind.Absolute))
-                    path = Path.GetFullPath(path);
+                string path = foto.Source; // Pad naar de foto
+                                           // Controleer of het pad een geldige absolute URI is, anders converteer naar volledig pad
+                if (!Uri.IsWellFormedUriString(path, UriKind.Absolute)) // Check of het pad een absolute URI is
+                    path = Path.GetFullPath(path); // Zet om naar volledig pad
 
-                if (!File.Exists(path))
+                // Controleer of het bestand bestaat
+                if (!File.Exists(path)) // Check of het bestand bestaat
                 {
-                    Window.lbSearchInfo.Content = "Bestand niet gevonden: " + path;
-                    Window.imgBig.Source = null;
-                    return;
+                    Window.lbSearchInfo.Content = "Bestand niet gevonden: " + path; // Toon foutmelding
+                    Window.imgBig.Source = null; // Maak afbeelding leeg
+                    return; // Stop de methode
                 }
 
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.UriSource = new Uri(path, UriKind.Absolute);
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
-                Window.imgBig.Source = bitmap;
-                Window.lbSearchInfo.Content = info;
+                // Laad de afbeelding in een BitmapImage
+                var bitmap = new BitmapImage(); // Maak een nieuwe BitmapImage aan
+                bitmap.BeginInit(); // Start initialisatie
+                bitmap.UriSource = new Uri(path, UriKind.Absolute); // Zet het pad als bron
+                bitmap.CacheOption = BitmapCacheOption.OnLoad; // Laad direct in het geheugen
+                bitmap.EndInit(); // Beëindig initialisatie
+                Window.imgBig.Source = bitmap; // Zet de afbeelding in het grote afbeeldingsvak
+                Window.lbSearchInfo.Content = info; // Toon info over de foto
             }
-            catch (Exception ex)
+            catch (Exception ex) // Als er een fout optreedt
             {
-                Window.lbSearchInfo.Content = "Kan de foto niet laden: " + ex.Message;
-                Window.imgBig.Source = null;
+                // Fout bij het laden van de foto
+                Window.lbSearchInfo.Content = "Kan de foto niet laden: " + ex.Message; // Toon foutmelding
+                Window.imgBig.Source = null; // Maak afbeelding leeg
             }
         }
     }
-}
+}   
